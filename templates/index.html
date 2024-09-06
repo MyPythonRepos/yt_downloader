@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio</title>
+</head>
+<body>
+    <p> Descargar vídeo/playlist </p>
+    <form method="POST">
+        <label for="dwld_type">Tipo de descarga:</label>
+        <select name="dwld_type" id="dwld_type">
+          <option value=""></option>
+          <option value="vídeo">Vídeo</option>
+          <option value="playlist">Playlist</option>
+        </select>
+        Enlace: <input type="text" name="yt_link" min="0">
+        Ruta de destino: <input type="text" name="save_path" min="0">
+        <!-- <a type="submit" href="{{url_for('download_file')}}"><button>Download</button></a> -->
+        <input type="submit" value="Acceder" />
+    </form>
+</body>
+</html>
