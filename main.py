@@ -1,10 +1,12 @@
-from flask import Flask, render_template, send_file, request, redirect
+from flask import Flask, render_template, request, redirect
 from pytubefix import YouTube, Playlist
 from pytubefix.cli import on_progress
 
 import os
+import re
 
 app = Flask(__name__)
+
 
 #########
 # RUTAS #
@@ -24,11 +26,7 @@ def download_file():
     link = request.form.get("yt_link")
     print(F"Descarga {type(dwld_type)} desde {link} en {save_path}")
     download(link, save_path) if dwld_type == "vídeo" else download_playlist(link, save_path)
-    # if dwld_type == "vídeo":
-    #     download(link, path)
-    # else:
-    #     download_playlist(link, path)
-
+    # TODO: Recuperar errores de la descarga y mostrarlo en la web
     return redirect("/")
 
 
@@ -38,32 +36,41 @@ def download_file():
 
 
 def download(link, save_path):
-    print("Descargando video")
-    youtube_object = YouTube(link, on_progress_callback = on_progress)
+    youtube_object = YouTube(link, on_progress_callback=on_progress)
     youtube_object = youtube_object.streams.get_highest_resolution()
-    print(youtube_object)
     try:
         if not save_path:
             save_path = os.path.dirname(os.path.abspath(__file__))
-        print(F"Descargando en {save_path}")
         youtube_object.download(save_path)
-        print("Download is completed successfully")
-    except Exception:
-        print(f"An error has occurred: \n{Exception}")
+        print("Descarga finalizada correctamente")
+    except Exception as e:
+        print(f"Ha ocurrido un error: \n{e}")
         exit(1)
-
 
 
 def download_playlist(link, save_path):
     print("Descargando lista")
     pl = Playlist(link)
+    if not save_path:
+        save_path = os.path.dirname(os.path.abspath(__file__)) + "\\" + pl.title
+    else:
+        save_path += "\\" + pl.title
     for idx, video in enumerate(pl.videos):
         print(f"Descargando: {video.title}")
-        video.streams.get_highest_resolution().download(save_path)
-        out_file = save_path+"\\"+video.streams.get_highest_resolution().default_filename
-        new_file = save_path+"\\"+str(idx)+"_"+video.streams.get_highest_resolution().default_filename
-        os.rename(out_file, new_file)
+        try:
+            video.streams.get_highest_resolution().download(save_path)
+            pattern = "[:?\"|/*$]"
+            out_file = (save_path+"\\" +
+                        re.sub(pattern, "", str(video.streams.get_highest_resolution().default_filename)))
+            print(out_file)
+            new_file = (save_path+"\\"+str(idx)+"_" +
+                        re.sub(pattern, "", str(video.streams.get_highest_resolution().default_filename)))
+            print(new_file)
+            os.rename(out_file, new_file)
+        except Exception as e:
+            print(f"Ha ocurrido un error: \n{e}")
+            # exit(1)
 
 
 if __name__ == '__main__':
-    app.run( debug=True)
+    app.run(debug=True)
