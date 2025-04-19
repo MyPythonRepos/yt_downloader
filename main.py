@@ -1,5 +1,6 @@
 from flask import Flask, render_template, send_file, request, redirect
-from pytube import YouTube, Playlist
+from pytubefix import YouTube, Playlist
+from pytubefix.cli import on_progress
 
 import os
 
@@ -15,12 +16,19 @@ def index():
     return render_template("index.html", title='Inicio')
 
 
-@app.route("/download", methods=['GET','POST'])
+@app.route("/download_file", methods=['GET', 'POST'])
 def download_file():
-    tipo_descarga = request.form.get("dwld_type")
-    path = request.form.get("save_path")
+    print("aqui")
+    dwld_type = request.form.get("dwld_type")
+    save_path = request.form.get("save_path")
     link = request.form.get("yt_link")
-    download(link, path) if tipo_descarga == "video" else download_playlist(link, path)
+    print(F"Descarga {type(dwld_type)} desde {link} en {save_path}")
+    download(link, save_path) if dwld_type == "vídeo" else download_playlist(link, save_path)
+    # if dwld_type == "vídeo":
+    #     download(link, path)
+    # else:
+    #     download_playlist(link, path)
+
     return redirect("/")
 
 
@@ -30,19 +38,24 @@ def download_file():
 
 
 def download(link, save_path):
-    youtube_object = YouTube(link)
+    print("Descargando video")
+    youtube_object = YouTube(link, on_progress_callback = on_progress)
     youtube_object = youtube_object.streams.get_highest_resolution()
+    print(youtube_object)
     try:
         if not save_path:
             save_path = os.path.dirname(os.path.abspath(__file__))
+        print(F"Descargando en {save_path}")
         youtube_object.download(save_path)
+        print("Download is completed successfully")
     except Exception:
         print(f"An error has occurred: \n{Exception}")
         exit(1)
-    print("Download is completed successfully")
+
 
 
 def download_playlist(link, save_path):
+    print("Descargando lista")
     pl = Playlist(link)
     for idx, video in enumerate(pl.videos):
         print(f"Descargando: {video.title}")
