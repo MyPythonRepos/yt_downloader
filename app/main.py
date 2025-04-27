@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, redirect
+#from flask_bootstrap import Bootstrap5
+
 from pytubefix import YouTube, Playlist
 from pytubefix.cli import on_progress
 
@@ -6,7 +8,9 @@ import os
 import re
 
 app = Flask(__name__)
+#bootstrap = Bootstrap5(app)
 
+app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'  # default to 'md'
 
 #########
 # RUTAS #
@@ -20,11 +24,9 @@ def index():
 
 @app.route("/download_file", methods=['GET', 'POST'])
 def download_file():
-    print("aqui")
     dwld_type = request.form.get("dwld_type")
     save_path = request.form.get("save_path")
     link = request.form.get("yt_link")
-    print(F"Descarga {type(dwld_type)} desde {link} en {save_path}")
     download(link, save_path) if dwld_type == "vídeo" else download_playlist(link, save_path)
     # TODO: Recuperar errores de la descarga y mostrarlo en la web
     return redirect("/")
@@ -54,16 +56,16 @@ def download_playlist(link, save_path):
     if not save_path:
         save_path = os.path.dirname(os.path.abspath(__file__)) + "\\" + pl.title
     else:
-        save_path += "\\" + pl.title
+        save_path += "/" + pl.title
     for idx, video in enumerate(pl.videos):
         print(f"Descargando: {video.title}")
         try:
             video.streams.get_highest_resolution().download(save_path)
             pattern = "[:?\"|/*$]"
-            out_file = (save_path+"\\" +
+            out_file = (save_path+"/" +
                         re.sub(pattern, "", str(video.streams.get_highest_resolution().default_filename)))
             print(out_file)
-            new_file = (save_path+"\\"+str(idx)+"_" +
+            new_file = (save_path+"/"+str(idx)+"_" +
                         re.sub(pattern, "", str(video.streams.get_highest_resolution().default_filename)))
             print(new_file)
             os.rename(out_file, new_file)
@@ -73,4 +75,5 @@ def download_playlist(link, save_path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0",
+            debug=True)

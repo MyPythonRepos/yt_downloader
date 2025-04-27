@@ -1,0 +1,12 @@
+services:
+  yt_downloader:
+    container_name: yt_downloader
+    image: yt_dowytdownloader:0.0.1
+    restart: unless_stopped
+    environment:
+      TZ: 'Europe/Madrid'
+    ports:
+      - "30000:5000/tcp"
+    volumes:
+      - './etc-pihole:/etc/pihole'
+    

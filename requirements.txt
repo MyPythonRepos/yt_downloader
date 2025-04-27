@@ -1,0 +1,4 @@
+flask~=3.1.0
+gunicorn
+bootstrap-flask
+pytubefix~=8.12.3
