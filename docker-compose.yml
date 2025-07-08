@@ -1,7 +1,7 @@
 services:
   yt_downloader:
     container_name: yt_downloader
-    image: yt_downloader:0.0.1
+    image: cleondock/yt_downloader:0.0.1
     restart: unless-stopped
     environment:
       TZ: 'Europe/Madrid'

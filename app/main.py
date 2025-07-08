@@ -27,6 +27,11 @@ def download_file():
     dwld_type = request.form.get("dwld_type")
     save_path = request.form.get("save_path")
     link = request.form.get("yt_link")
+    if not dwld_type:
+        dwld_type = "vídeo"
+    if not save_path:
+        save_path = os.path.dirname(os.path.abspath(__file__))
+    print(f"Descargando {dwld_type} en {save_path}")
     download(link, save_path) if dwld_type == "vídeo" else download_playlist(link, save_path)
     # TODO: Recuperar errores de la descarga y mostrarlo en la web
     return redirect("/")
@@ -41,8 +46,6 @@ def download(link, save_path):
     youtube_object = YouTube(link, on_progress_callback=on_progress)
     youtube_object = youtube_object.streams.get_highest_resolution()
     try:
-        if not save_path:
-            save_path = os.path.dirname(os.path.abspath(__file__))
         youtube_object.download(save_path)
         print("Descarga finalizada correctamente")
     except Exception as e:
@@ -53,10 +56,7 @@ def download(link, save_path):
 def download_playlist(link, save_path):
     print("Descargando lista")
     pl = Playlist(link)
-    if not save_path:
-        save_path = os.path.dirname(os.path.abspath(__file__)) + "\\" + pl.title
-    else:
-        save_path += "/" + pl.title
+    save_path += "/" + pl.title
     for idx, video in enumerate(pl.videos):
         print(f"Descargando: {video.title}")
         try:
@@ -76,4 +76,5 @@ def download_playlist(link, save_path):
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",
+            port=5003,
             debug=True)
