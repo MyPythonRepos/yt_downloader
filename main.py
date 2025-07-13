@@ -2,8 +2,16 @@ from flask import Flask, render_template, request, redirect
 from pytubefix import YouTube, Playlist
 from pytubefix.cli import on_progress
 
+from logger_config import setup_logger
+import logging
+
 import os
 import re
+
+
+# Configurar el logger
+setup_logger()
+logger = logging.getLogger()
 
 app = Flask(__name__)
 
@@ -15,6 +23,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+    logger.info("Se accedió a la página de inicio.")
     return render_template("index.html", title='Inicio')
 
 
@@ -24,7 +33,7 @@ def download_file():
     dwld_type = request.form.get("dwld_type")
     save_path = request.form.get("save_path")
     link = request.form.get("yt_link")
-    print(F"Descarga {type(dwld_type)} desde {link} en {save_path}")
+    logger.info(f"Descarga {dwld_type} desde {link} en {save_path}")
     download(link, save_path) if dwld_type == "vídeo" else download_playlist(link, save_path)
     # TODO: Recuperar errores de la descarga y mostrarlo en la web
     return redirect("/")
@@ -42,21 +51,21 @@ def download(link, save_path):
         if not save_path:
             save_path = os.path.dirname(os.path.abspath(__file__))
         youtube_object.download(save_path)
-        print("Descarga finalizada correctamente")
+        logger.info("Descarga finalizada correctamente.")
     except Exception as e:
-        print(f"Ha ocurrido un error: \n{e}")
+        logger.error(f"Error al procesar la descarga: {e}")
         exit(1)
 
 
 def download_playlist(link, save_path):
-    print("Descargando lista")
+    logger.info("Descargando playlist...")
     pl = Playlist(link)
     if not save_path:
         save_path = os.path.dirname(os.path.abspath(__file__)) + "\\" + pl.title
     else:
         save_path += "\\" + pl.title
     for idx, video in enumerate(pl.videos):
-        print(f"Descargando: {video.title}")
+        logger.info(f"Descargando video {video.title}")
         try:
             video.streams.get_highest_resolution().download(save_path)
             pattern = "[:?\"|/*$]"
@@ -68,7 +77,7 @@ def download_playlist(link, save_path):
             print(new_file)
             os.rename(out_file, new_file)
         except Exception as e:
-            print(f"Ha ocurrido un error: \n{e}")
+            logger.error(f"Error al procesar la descarga: {e}")
             # exit(1)
 
 
