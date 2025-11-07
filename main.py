@@ -23,17 +23,16 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    logger.info("Se accedió a la página de inicio.")
+    logger.info("Cargando página de inicio.")
     return render_template("index.html", title='Inicio')
 
 
 @app.route("/download_file", methods=['GET', 'POST'])
 def download_file():
-    print("aqui")
     dwld_type = request.form.get("dwld_type")
     save_path = request.form.get("save_path")
     link = request.form.get("yt_link")
-    logger.info(f"Descarga {dwld_type} desde {link} en {save_path}")
+    logger.info(f"Iniciada descarga de {dwld_type} desde {link} en {save_path}")
     download(link, save_path) if dwld_type == "vídeo" else download_playlist(link, save_path)
     # TODO: Recuperar errores de la descarga y mostrarlo en la web
     return redirect("/")
@@ -71,10 +70,8 @@ def download_playlist(link, save_path):
             pattern = "[:?\"|/*$]"
             out_file = (save_path+"\\" +
                         re.sub(pattern, "", str(video.streams.get_highest_resolution().default_filename)))
-            print(out_file)
             new_file = (save_path+"\\"+str(idx)+"_" +
                         re.sub(pattern, "", str(video.streams.get_highest_resolution().default_filename)))
-            print(new_file)
             os.rename(out_file, new_file)
         except Exception as e:
             logger.error(f"Error al procesar la descarga: {e}")

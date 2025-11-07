@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 def setup_logger():
     # Crear carpeta de logs si no existe
     log_folder = 'logs'
